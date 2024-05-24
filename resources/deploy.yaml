@@ -1,0 +1,25 @@
+apiVersion: tekton.dev/v1beta
+kind: Task
+metadata:
+  name: deploy
+spec:
+  steps:
+  - name: checkout-and-build
+    image: alpine:latest
+    workingDir: /workspace/shared-workspace
+    script: |-
+      apk add --no-cache git make
+      git clone https://github.com/your-repo/your-project.git /workspace/shared-workspace
+      cd /workspace/shared-workspace
+      git checkout $GITHUB_REF
+      make build
+  - name: Set up kubectl
+    image: alpine
+    workingDir: /workspace/shared-workspace
+    script: echo 'Using azure/setup-kubectl@v1 is not yet supported'
+  - name: Deploy to Kubernetes
+    image: alpine
+    workingDir: /workspace/shared-workspace
+    script: kubectl apply -f deployment.yaml
+  workspaces:
+  - name: shared-workspace

@@ -1,0 +1,25 @@
+apiVersion: tekton.dev/v1beta
+kind: Task
+metadata:
+  name: test
+spec:
+  steps:
+  - name: checkout-and-build
+    image: alpine:latest
+    workingDir: /workspace/shared-workspace
+    script: |-
+      apk add --no-cache git make
+      git clone https://github.com/your-repo/your-project.git /workspace/shared-workspace
+      cd /workspace/shared-workspace
+      git checkout $GITHUB_REF
+      make build
+  - name: Set up JDK 8
+    image: alpine
+    workingDir: /workspace/shared-workspace
+    script: echo 'Using actions/setup-java@v3 is not yet supported'
+  - name: Run tests
+    image: alpine
+    workingDir: /workspace/shared-workspace
+    script: mvn test
+  workspaces:
+  - name: shared-workspace
