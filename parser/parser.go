@@ -10,3 +10,11 @@ func ParseGithubActionsWorkflow(workflowFile []byte) (models.GitHubActionsWorkfl
 	err := yaml.Unmarshal(workflowFile, &workflowObj)
 	return workflowObj, err
 }
+
+func ParseGitlabPipeline(pipeline []byte) {
+
+}
+
+func BitbucketPiplein(pipeline []byte) {
+
+}

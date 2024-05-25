@@ -2,39 +2,110 @@ package generator
 
 import (
 	"fmt"
-	"os"
 
 	Generator "github.com/rxored/sidecar/generator/models"
+	Utils "github.com/rxored/sidecar/generator/utils"
 	Parser "github.com/rxored/sidecar/parser/models"
-	"gopkg.in/yaml.v2"
+	"github.com/rxored/sidecar/utils"
 )
 
-type TektonResourcesFromGithub struct{}
+func WriteResourceA(data TektonPipeline) error {
 
-func mapEnv(env map[string]string) []Generator.TektonEnvVar {
-	var vars []Generator.TektonEnvVar
-	for key, value := range env {
-		vars = append(vars, Generator.TektonEnvVar{
-			Name:  key,
-			Value: value,
-		})
+	switch v := data.(type) {
+	case FromGithubWorkflow:
+		// write all the tasks
+		for _, k := range v.TektonTasks {
+			err := utils.WriteYamlToFile(k.Metadata.Name+".yaml", k)
+			if err != nil {
+				return err
+			}
+		}
+
+		// write all the pipelines
+
+		// write all the pipeline runs
 	}
-	return vars
+	return nil
 }
 
-func writeYamlToFile(filename string, data interface{}) error {
-	file, err := os.Create("./resources/" + filename)
-	if err != nil {
-		return err
+func WriteResource(data interface{}) error {
+	switch v := data.(type) {
+	case FromGithubWorkflow:
+		// write all the tasks
+		for _, k := range v.TektonTasks {
+			err := utils.WriteYamlToFile(k.Metadata.Name+".yaml", k)
+			if err != nil {
+				return err
+			}
+		}
+
+		// write all the pipelines
+
+		// write all the pipeline runs
 	}
-	defer file.Close()
-
-	encoder := yaml.NewEncoder(file)
-	defer encoder.Close()
-
-	return encoder.Encode(data)
+	return nil
 }
 
+type TektonPipeline interface {
+	GeneratePipelineRun()
+	GeneratePipeline()
+	GenerateTask()
+	extractStep()
+	WriteResources()
+}
+
+type TektonPipelineImpl struct {
+	TektonTasks []Generator.TektonTask
+}
+
+type FromGithubWorkflow struct {
+	TektonPipelineImpl
+	Workflow *Parser.GitHubActionsWorkflow
+}
+
+func (fg *FromGithubWorkflow) WriteResources() error {
+	return WriteResource(fg)
+}
+
+func (fg *FromGithubWorkflow) extractStep(wfStep Parser.Step, tektonStep *Generator.TektonTaskStep) {
+	tektonStep.Name = Utils.ToTektonTaskName(wfStep.Name)
+	tektonStep.Image = "alpine" // set alpine as default for now
+	tektonStep.WorkDir = "/workspace/shared-workspace"
+	tektonStep.Workspaces = append(tektonStep.Workspaces, Generator.TektonWorkspace{Name: "shared-workspace"})
+
+	// handle actions logic manually for now
+	if wfStep.Uses != "" {
+		switch wfStep.Uses {
+		case "actions/checkout@v1", "actions/checkout@v2", "actions/checkout@v3":
+		default:
+			tektonStep.Script = fmt.Sprintf("echo 'Using %s is not yet supported'", wfStep.Uses)
+		}
+	} else if wfStep.Run != "" {
+		tektonStep.Script = wfStep.Run
+	}
+}
+
+func (fg *FromGithubWorkflow) GenerateTask() {
+	for jobName, job := range fg.Workflow.Jobs {
+		task := Generator.TektonTask{
+			APIVersion: "tekton.dev/v1",
+			Kind:       "Task",
+			Metadata: Generator.TektonMetadata{
+				Name: Utils.ToTektonTaskName(jobName),
+			},
+			Spec: Generator.TektonTaskSpec{},
+		}
+		for _, step := range job.Steps {
+			var tektonStep Generator.TektonTaskStep
+			fg.extractStep(step, &tektonStep)
+			task.Spec.Steps = append(task.Spec.Steps, tektonStep)
+		}
+		task.Spec.Workspaces = append(task.Spec.Workspaces, Generator.TektonWorkspace{Name: "shared-workspace"})
+		fg.TektonTasks = append(fg.TektonTasks, task)
+	}
+}
+
+/*
 func GenerateTektonTasks(jobs map[string]Parser.Job) {
 	for jobName, job := range jobs {
 		task := Generator.TektonTask{
@@ -92,7 +163,7 @@ make build`,
 		writeYamlToFile(jobName+".yaml", task)
 	}
 }
-
+*/
 /*
 func (tgw *TektonResourcesFromGithub) GenerateResourcesGithub(models.GitHubActionsWorkflow) {
 

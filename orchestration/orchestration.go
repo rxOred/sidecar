@@ -23,8 +23,8 @@ func SetupK8sCluser() {
 		log.Fatalf(err.Error())
 	}
 
-	kubeconfig = cwd + "./resources/kubeconfig.kube"
-
+	kubeconfig = cwd + "/resources/kubeconfig"
+	log.Println("loading kubeconfig from " + kubeconfig)
 	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
 	if err != nil {
 		config, err = rest.InClusterConfig()
@@ -41,7 +41,7 @@ func SetupK8sCluser() {
 		log.Fatalf("Error creating Tekton client: %v", err)
 	}
 
-	taskYaml, err := os.ReadFile("task.yaml")
+	taskYaml, err := os.ReadFile("./resources/build.yaml")
 	if err != nil {
 		log.Fatalf("Error reading task YAML file: %v", err)
 	}

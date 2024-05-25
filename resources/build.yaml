@@ -1,4 +1,4 @@
-apiVersion: tekton.dev/v1beta
+apiVersion: tekton.dev/v1
 kind: Task
 metadata:
   name: build
@@ -13,11 +13,11 @@ spec:
       cd /workspace/shared-workspace
       git checkout $GITHUB_REF
       make build
-  - name: Set up JDK 8
+  - name: set-up-jdk-8
     image: alpine
     workingDir: /workspace/shared-workspace
     script: echo 'Using actions/setup-java@v3 is not yet supported'
-  - name: Build with Maven
+  - name: build-with-maven
     image: alpine
     workingDir: /workspace/shared-workspace
     script: mvn clean install
