@@ -14,6 +14,11 @@ type TektonTaskSpec struct {
 	Results    []TektonTaskResult `yaml:"results,omitempty"`
 }
 
+type TektonTaskResult struct {
+	Name        string `yaml:"name"`
+	Description string `yaml:"description,omitempty"`
+}
+
 type TektonTaskStep struct {
 	Name       string            `yaml:"name"`
 	Image      string            `yaml:"image"`

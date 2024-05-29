@@ -26,7 +26,7 @@ type TektonParamSpec struct {
 	Default     string `yaml:"default,omitempty"`
 }
 
-type TektonTaskResult struct {
-	Name        string `yaml:"name"`
-	Description string `yaml:"description,omitempty"`
+type TektonParams struct {
+	Name  string `yaml:"name"`
+	Value string `yaml:"value"`
 }

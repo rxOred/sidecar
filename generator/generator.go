@@ -39,7 +39,8 @@ type TektonPipeline interface {
 }
 
 type TektonPipelineImpl struct {
-	TektonTasks []Generator.TektonTask
+	TektonTasks     []Generator.TektonTask
+	TektonPipelines []Generator.TektonPipeline
 }
 
 type fromGithubWorkflow struct {
