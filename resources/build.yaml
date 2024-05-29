@@ -4,22 +4,22 @@ metadata:
   name: build
 spec:
   steps:
-  - name: checkout-and-build
-    image: alpine:latest
+  - name: checkout-code
+    image: alpine
     workingDir: /workspace/shared-workspace
-    script: |-
-      apk add --no-cache git make
-      git clone https://github.com/your-repo/your-project.git /workspace/shared-workspace
-      cd /workspace/shared-workspace
-      git checkout $GITHUB_REF
-      make build
+    workspaces:
+    - name: shared-workspace
   - name: set-up-jdk-8
     image: alpine
     workingDir: /workspace/shared-workspace
     script: echo 'Using actions/setup-java@v3 is not yet supported'
+    workspaces:
+    - name: shared-workspace
   - name: build-with-maven
     image: alpine
     workingDir: /workspace/shared-workspace
     script: mvn clean install
+    workspaces:
+    - name: shared-workspace
   workspaces:
   - name: shared-workspace

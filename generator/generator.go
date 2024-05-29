@@ -2,6 +2,7 @@ package generator
 
 import (
 	"fmt"
+	"log"
 
 	Generator "github.com/rxored/sidecar/generator/models"
 	Utils "github.com/rxored/sidecar/generator/utils"
@@ -9,28 +10,9 @@ import (
 	"github.com/rxored/sidecar/utils"
 )
 
-func WriteResourceA(data TektonPipeline) error {
-
-	switch v := data.(type) {
-	case FromGithubWorkflow:
-		// write all the tasks
-		for _, k := range v.TektonTasks {
-			err := utils.WriteYamlToFile(k.Metadata.Name+".yaml", k)
-			if err != nil {
-				return err
-			}
-		}
-
-		// write all the pipelines
-
-		// write all the pipeline runs
-	}
-	return nil
-}
-
 func WriteResource(data interface{}) error {
 	switch v := data.(type) {
-	case FromGithubWorkflow:
+	case *fromGithubWorkflow:
 		// write all the tasks
 		for _, k := range v.TektonTasks {
 			err := utils.WriteYamlToFile(k.Metadata.Name+".yaml", k)
@@ -42,6 +24,8 @@ func WriteResource(data interface{}) error {
 		// write all the pipelines
 
 		// write all the pipeline runs
+	default:
+		log.Println("not a matching type ", v)
 	}
 	return nil
 }
@@ -58,16 +42,29 @@ type TektonPipelineImpl struct {
 	TektonTasks []Generator.TektonTask
 }
 
-type FromGithubWorkflow struct {
+type fromGithubWorkflow struct {
 	TektonPipelineImpl
 	Workflow *Parser.GitHubActionsWorkflow
 }
 
-func (fg *FromGithubWorkflow) WriteResources() error {
+type fromGitlabPipeline struct {
+	TektonPipelineImpl
+}
+
+type fromBitbucketPipeline struct {
+	TektonPipelineImpl
+}
+
+func NewFromGithubActionsWorkflow(wf *Parser.GitHubActionsWorkflow) *fromGithubWorkflow {
+	obj := &fromGithubWorkflow{Workflow: wf}
+	return obj
+}
+
+func (fg *fromGithubWorkflow) WriteResources() error {
 	return WriteResource(fg)
 }
 
-func (fg *FromGithubWorkflow) extractStep(wfStep Parser.Step, tektonStep *Generator.TektonTaskStep) {
+func (fg *fromGithubWorkflow) extractStep(wfStep Parser.Step, tektonStep *Generator.TektonTaskStep) {
 	tektonStep.Name = Utils.ToTektonTaskName(wfStep.Name)
 	tektonStep.Image = "alpine" // set alpine as default for now
 	tektonStep.WorkDir = "/workspace/shared-workspace"
@@ -85,7 +82,7 @@ func (fg *FromGithubWorkflow) extractStep(wfStep Parser.Step, tektonStep *Genera
 	}
 }
 
-func (fg *FromGithubWorkflow) GenerateTask() {
+func (fg *fromGithubWorkflow) GenerateTask() {
 	for jobName, job := range fg.Workflow.Jobs {
 		task := Generator.TektonTask{
 			APIVersion: "tekton.dev/v1",
