@@ -30,3 +30,12 @@ type TektonParams struct {
 	Name  string `yaml:"name"`
 	Value string `yaml:"value"`
 }
+
+type TekTonPvc struct {
+	ClaimName string `yaml:"claimName"`
+}
+
+type TektonWorkspaceWithPvc struct {
+	Name                  string    `yaml:"name"`
+	PersistentVolumeClaim TekTonPvc `yaml:"persistentVolumeClaim"`
+}

@@ -22,6 +22,7 @@ func main() {
 
 	pipeline := generator.NewFromGithubActionsWorkflow(&workflowObj)
 	pipeline.GenerateTask()
+	pipeline.GenerateTaskRun()
 	if err := pipeline.WriteResources(); err != nil {
 		log.Fatalf(err.Error())
 	}
@@ -36,4 +37,14 @@ func main() {
 		log.Fatalf(err.Error())
 	}
 	cluster.ApplyTektonTask(file)
+
+	run, err := os.ReadFile("./resources/test-taskrun_changed.yaml")
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+	log.Println("come h")
+	err = cluster.ApplyTektonTaskRun(run)
+	if err != nil {
+		log.Println(err.Error())
+	}
 }

@@ -1,0 +1,11 @@
+apiVersion: tekton.dev/v1
+kind: TaskRun
+metadata:
+  name: build-taskrun
+spec:
+  taskRef:
+    name: build
+  workspaces:
+  - name: shared-workspace
+    persistentVolumeClaim:
+      claimName: pvc1

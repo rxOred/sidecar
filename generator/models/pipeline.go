@@ -15,12 +15,8 @@ type TektonPipelineSpec struct {
 
 type TektonPipelineTask struct {
 	Name       string                   `yaml:"name"`
-	TaskRef    TektonPipelineTaskRef    `yaml:"taskRef"`
+	TaskRef    TektonTaskRef            `yaml:"taskRef"`
 	Params     []TektonParams           `yaml:"params,omitempty"`
 	RunAfter   []string                 `yaml:"runAfter,omitempty"`
 	Workspaces []TektonWorkspaceBinding `yaml:"workspaces,omitempty"`
-}
-
-type TektonPipelineTaskRef struct {
-	Name string `yaml:"name"`
 }

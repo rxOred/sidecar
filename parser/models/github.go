@@ -69,6 +69,6 @@ type Job struct {
 
 type GitHubActionsWorkflow struct {
 	Name string         `yaml:"name"`
-	On   On             `yaml:"on"` // Using interface{} for simplicity here, but you can use a more specific type as needed
+	On   On             `yaml:"on"`
 	Jobs map[string]Job `yaml:"jobs"`
 }

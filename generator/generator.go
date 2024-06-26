@@ -21,6 +21,12 @@ func WriteResource(data interface{}) error {
 			}
 		}
 
+		for _, k := range v.TektonTaskRuns {
+			err := utils.WriteYamlToFile(k.Metadata.Name+".yaml", k)
+			if err != nil {
+				return err
+			}
+		}
 		// write all the pipelines
 
 		// write all the pipeline runs
@@ -40,7 +46,8 @@ type TektonPipeline interface {
 
 type TektonPipelineImpl struct {
 	TektonTasks     []Generator.TektonTask
-	TektonPipelines []Generator.TektonPipeline
+	TektonTaskRuns  []Generator.TektonTaskRuns
+	TektonPipelines Generator.TektonPipeline
 }
 
 type fromGithubWorkflow struct {
@@ -63,6 +70,10 @@ func NewFromGithubActionsWorkflow(wf *Parser.GitHubActionsWorkflow) *fromGithubW
 
 func (fg *fromGithubWorkflow) WriteResources() error {
 	return WriteResource(fg)
+}
+
+func (fg *fromGithubWorkflow) GeneratePipeline() {
+
 }
 
 func (fg *fromGithubWorkflow) extractStep(wfStep Parser.Step, tektonStep *Generator.TektonTaskStep) {
@@ -103,66 +114,25 @@ func (fg *fromGithubWorkflow) GenerateTask() {
 	}
 }
 
-/*
-func GenerateTektonTasks(jobs map[string]Parser.Job) {
-	for jobName, job := range jobs {
-		task := Generator.TektonTask{
-			APIVersion: "tekton.dev/v1beta",
-			Kind:       "Task",
+func (fg *fromGithubWorkflow) GenerateTaskRun() {
+	for _, task := range fg.TektonTasks {
+		run := Generator.TektonTaskRuns{
+			APIVersion: task.APIVersion,
+			Kind:       "TaskRun",
 			Metadata: Generator.TektonMetadata{
-				Name: jobName,
+				Name: task.Metadata.Name + "-taskrun",
 			},
-			Spec: Generator.TektonTaskSpec{},
+			Spec: Generator.TektonTaskRunSpec{},
 		}
+		run.Spec.TaskRef = Generator.TektonTaskRef{Name: task.Metadata.Name}
+		// fill up params
+		run.Spec.Workspaces = append(run.Spec.Workspaces, Generator.TektonWorkspaceWithPvc{
+			Name: "shared-workspace",
+			PersistentVolumeClaim: Generator.TekTonPvc{
+				ClaimName: "pvc1",
+			},
+		})
 
-		for _, step := range job.Steps {
-			var tektonStep Generator.TektonTaskStep
-
-			if step.Uses != "" {
-				switch step.Uses {
-				case "actions/checkout@v1", "actions/checkout@v2", "actions/checkout@v3":
-					tektonStep = Generator.TektonTaskStep{
-						Name:  "checkout-and-build",
-						Image: "alpine:latest",
-						Script: `apk add --no-cache git make
-git clone https://github.com/your-repo/your-project.git /workspace/shared-workspace
-cd /workspace/shared-workspace
-git checkout $GITHUB_REF
-make build`,
-						WorkDir: "/workspace/shared-workspace",
-					}
-				case "actions/upload-artifact@v2":
-					tektonStep = Generator.TektonTaskStep{
-						Name:  "upload-artifact",
-						Image: "bash:latest",
-						Script: `echo "Uploading artifact..."
-# Your artifact upload script here`,
-					}
-				default:
-					tektonStep = Generator.TektonTaskStep{
-						Name:    step.Name,
-						Image:   "alpine",
-						Script:  fmt.Sprintf("echo 'Using %s is not yet supported'", step.Uses),
-						WorkDir: "/workspace/shared-workspace",
-					}
-				}
-			} else if step.Run != "" {
-				tektonStep = Generator.TektonTaskStep{
-					Name:    step.Name,
-					Image:   "alpine",
-					Script:  step.Run,
-					Env:     mapEnv(step.Env),
-					WorkDir: "/workspace/shared-workspace",
-				}
-			}
-			task.Spec.Steps = append(task.Spec.Steps, tektonStep)
-		}
-		task.Spec.Workspaces = append(task.Spec.Workspaces, Generator.TektonWorkspace{Name: "shared-workspace"})
-		writeYamlToFile(jobName+".yaml", task)
+		fg.TektonTaskRuns = append(fg.TektonTaskRuns, run)
 	}
 }
-*/
-/*
-func (tgw *TektonResourcesFromGithub) GenerateResourcesGithub(models.GitHubActionsWorkflow) {
-
-}*/

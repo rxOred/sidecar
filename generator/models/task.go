@@ -29,3 +29,20 @@ type TektonTaskStep struct {
 	Script     string            `yaml:"script,omitempty"`
 	Workspaces []TektonWorkspace `yaml:"workspaces,omitempty"`
 }
+
+type TektonTaskRef struct {
+	Name string `yaml:"name"`
+}
+
+type TektonTaskRuns struct {
+	APIVersion string            `yaml:"apiVersion"`
+	Kind       string            `yaml:"kind"`
+	Metadata   TektonMetadata    `yaml:"metadata"`
+	Spec       TektonTaskRunSpec `yaml:"spec"`
+}
+
+type TektonTaskRunSpec struct {
+	TaskRef    TektonTaskRef            `yaml:"taskRef"`
+	Params     []TektonParams           `yaml:"params,omitempty"`
+	Workspaces []TektonWorkspaceWithPvc `yaml:"workspaces"`
+}
