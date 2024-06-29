@@ -1,4 +1,4 @@
-package models
+package github
 
 import "fmt"
 

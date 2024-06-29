@@ -6,7 +6,8 @@ import (
 
 	Generator "github.com/rxored/sidecar/generator/models"
 	Utils "github.com/rxored/sidecar/generator/utils"
-	Parser "github.com/rxored/sidecar/parser/models"
+	BbParser "github.com/rxored/sidecar/parser/models/bitbucket"
+	GhParser "github.com/rxored/sidecar/parser/models/github"
 	"github.com/rxored/sidecar/utils"
 )
 
@@ -50,22 +51,32 @@ type TektonPipelineImpl struct {
 	TektonPipelines Generator.TektonPipeline
 }
 
+type fromBitbucketPipeline struct {
+	TektonPipelineImpl
+	Pipeline *BbParser.BitbucketPipeline
+}
+
 type fromGithubWorkflow struct {
 	TektonPipelineImpl
-	Workflow *Parser.GitHubActionsWorkflow
+	Workflow *GhParser.GitHubActionsWorkflow
 }
 
 type fromGitlabPipeline struct {
 	TektonPipelineImpl
 }
 
-type fromBitbucketPipeline struct {
-	TektonPipelineImpl
+func NewFromBibucketPipeline(bbp *BbParser.BitbucketPipeline) *fromBitbucketPipeline {
+	obj := &fromBitbucketPipeline{Pipeline: bbp}
+	return obj
 }
 
-func NewFromGithubActionsWorkflow(wf *Parser.GitHubActionsWorkflow) *fromGithubWorkflow {
+func NewFromGithubActionsWorkflow(wf *GhParser.GitHubActionsWorkflow) *fromGithubWorkflow {
 	obj := &fromGithubWorkflow{Workflow: wf}
 	return obj
+}
+
+func (fb *fromBitbucketPipeline) WriteResources() error {
+	return WriteResource(fb)
 }
 
 func (fg *fromGithubWorkflow) WriteResources() error {
@@ -76,7 +87,7 @@ func (fg *fromGithubWorkflow) GeneratePipeline() {
 
 }
 
-func (fg *fromGithubWorkflow) extractStep(wfStep Parser.Step, tektonStep *Generator.TektonTaskStep) {
+func (fg *fromGithubWorkflow) extractStep(wfStep GhParser.Step, tektonStep *Generator.TektonTaskStep) {
 	tektonStep.Name = Utils.ToTektonTaskName(wfStep.Name)
 	tektonStep.Image = "alpine" // set alpine as default for now
 	tektonStep.WorkDir = "/workspace/shared-workspace"
