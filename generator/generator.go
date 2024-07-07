@@ -87,6 +87,10 @@ func (fg *fromGithubWorkflow) GeneratePipeline() {
 
 }
 
+func (bb *fromBitbucketPipeline) extractStep(wfStep GhParser.Step, tektonStep *Generator.TektonTaskStep) {
+
+}
+
 func (fg *fromGithubWorkflow) extractStep(wfStep GhParser.Step, tektonStep *Generator.TektonTaskStep) {
 	tektonStep.Name = Utils.ToTektonTaskName(wfStep.Name)
 	tektonStep.Image = "alpine" // set alpine as default for now
@@ -103,6 +107,10 @@ func (fg *fromGithubWorkflow) extractStep(wfStep GhParser.Step, tektonStep *Gene
 	} else if wfStep.Run != "" {
 		tektonStep.Script = wfStep.Run
 	}
+}
+
+func (bb *fromBitbucketPipeline) GenerateTask() {
+
 }
 
 func (fg *fromGithubWorkflow) GenerateTask() {
@@ -123,6 +131,10 @@ func (fg *fromGithubWorkflow) GenerateTask() {
 		task.Spec.Workspaces = append(task.Spec.Workspaces, Generator.TektonWorkspace{Name: "shared-workspace"})
 		fg.TektonTasks = append(fg.TektonTasks, task)
 	}
+}
+
+func (bb *fromBitbucketPipeline) GenerateTaskRun() {
+
 }
 
 func (fg *fromGithubWorkflow) GenerateTaskRun() {
