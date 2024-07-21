@@ -87,8 +87,11 @@ func (fg *fromGithubWorkflow) GeneratePipeline() {
 
 }
 
-func (bb *fromBitbucketPipeline) extractStep(wfStep GhParser.Step, tektonStep *Generator.TektonTaskStep) {
-
+func (bb *fromBitbucketPipeline) extractStep(bbStep BbParser.Step, tektonStep *Generator.TektonTaskStep) {
+	tektonStep.Name = Utils.ToTektonTaskName(bbStep.Name)
+	tektonStep.Image = bbStep.Image
+	log.Println(tektonStep.Name)
+	log.Println(tektonStep.Image)
 }
 
 func (fg *fromGithubWorkflow) extractStep(wfStep GhParser.Step, tektonStep *Generator.TektonTaskStep) {
@@ -110,7 +113,21 @@ func (fg *fromGithubWorkflow) extractStep(wfStep GhParser.Step, tektonStep *Gene
 }
 
 func (bb *fromBitbucketPipeline) GenerateTask() {
+	for pipelineName, pipeline := range bb.Pipeline.Pipelines {
+		_ = Generator.TektonTask{
+			APIVersion: "tekton.dev/v1",
+			Kind:       "Task",
+			Metadata: Generator.TektonMetadata{
+				Name: Utils.ToTektonTaskName(pipelineName),
+			},
+			Spec: Generator.TektonTaskSpec{},
+		}
+		for _, step := range pipeline.Steps {
+			var tektonStep Generator.TektonTaskStep
+			bb.extractStep(step, &tektonStep)
 
+		}
+	}
 }
 
 func (fg *fromGithubWorkflow) GenerateTask() {
