@@ -16,7 +16,7 @@ func main() {
 	pipelinePath := flag.String("pipeline", "pipeline.yaml", "Path to the CI pipeline YAML file")
 	executorBackend := flag.String("executor", "tekton", "Executor backend to use (e.g., tekton)")
 	kubeconfig := flag.String("kubeconfig", os.Getenv("KUBECONFIG"), "Path to kubeconfig")
-	namespace := flag.String("namespace", "default", "Kubernetes namespace to deploy into")
+	namespace := flag.String("namespace", "tekton-pipelines", "Kubernetes namespace to deploy into")
 
 	flag.Parse()
 

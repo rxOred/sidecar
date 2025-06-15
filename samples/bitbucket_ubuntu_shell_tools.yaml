@@ -1,0 +1,9 @@
+image: ubuntu
+
+pipelines:
+  default:
+    - step:
+        name: Check Directory
+        script:
+          - pwd
+          - ls -la
