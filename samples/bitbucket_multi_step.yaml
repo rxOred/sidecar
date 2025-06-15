@@ -1,0 +1,14 @@
+pipelines:
+  default:
+    - step:
+        name: Build
+        script:
+          - echo "Building the project"
+    - step:
+        name: Test
+        script:
+          - echo "Running tests"
+    - step:
+        name: Deploy
+        script:
+          - echo "Deploying to production"

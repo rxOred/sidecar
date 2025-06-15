@@ -1,0 +1,8 @@
+image: alpine
+
+pipelines:
+  default:
+    - step:
+        name: Hello
+        script:
+          - echo "Hello, Bitbucket!"
